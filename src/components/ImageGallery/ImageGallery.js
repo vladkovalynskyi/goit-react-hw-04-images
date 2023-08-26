@@ -12,7 +12,7 @@ export default function ImageGallery({ searchQuery, showLargeImage }) {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('idle');
   const [showBtn, setShowBtn] = useState(false);
-  const [showBtnLoader, setShowBtnLoader] = useState(false);
+  const [showBtnLoader] = useState(false);
 
   useEffect(() => {
     if (!searchQuery) return;
