@@ -10,7 +10,8 @@ export default class Searchbar extends Component {
   };
 
   handleInputChange = e => {
-    this.setState({ inputValue: e.target.value });
+    const { value } = e.target;
+    this.setState({ inputValue: value });
   };
 
   resetForm = () => {
@@ -20,6 +21,7 @@ export default class Searchbar extends Component {
   onSubmit = e => {
     e.preventDefault();
     const { inputValue } = this.state;
+    const { onSubmit } = this.props;
 
     if (!inputValue.trim()) {
       toast.warn('Search bar is empty! Please enter a search query.');
@@ -27,7 +29,7 @@ export default class Searchbar extends Component {
       return;
     }
 
-    this.props.onSubmit(inputValue);
+    onSubmit(inputValue);
     this.resetForm();
   };
 
@@ -48,7 +50,7 @@ export default class Searchbar extends Component {
             autoComplete="off"
             autoFocus
             placeholder="Search images and photos"
-            onChange={e => this.handleInputChange(e)}
+            onChange={this.handleInputChange}
           />
         </form>
       </header>
@@ -59,4 +61,3 @@ export default class Searchbar extends Component {
 Searchbar.propTypes = {
   onSubmit: PropTypes.func.isRequired,
 };
-  
