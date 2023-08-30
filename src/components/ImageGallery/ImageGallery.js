@@ -1,40 +1,56 @@
-import React, { useState, useEffect } from 'react';
 import css from './ImageGallery.module.css';
-import APIservices from 'Api/api';
+import { useState, useEffect } from 'react';
+import { usePrevious } from '@reactuses/core';
 import Loader from '../Loader/Loader';
 import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
 import Button from '../Button/Button';
 import PropTypes from 'prop-types';
+import APIservices from 'Api/api';
 
-export default function ImageGallery({ searchQuery, showLargeImage }) {
+export default function ImageGallery({ newSearchQuery, showLargeImage }) {
+  const [searchQuery, setSearchQuery] = useState([]);
   const [data, setData] = useState([]);
   const [total, setTotal] = useState('');
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('idle');
   const [showBtn, setShowBtn] = useState(false);
-  const [showBtnLoader] = useState(false);
+  const [showBtnLoader, setShowBtnLoader] = useState(false);
+
+  const prevPage = usePrevious(page);
 
   useEffect(() => {
-    if (!searchQuery) return;
+    if (!newSearchQuery) return;
 
-    setStatus('pending');
-    setData([]);
-    setPage(1);
-
-    const fetchData = async () => {
+    const fetchImages = async (query, page) => {
       try {
-        const { hits, total } = await APIservices.fetchImages(searchQuery, page);
+        const { hits, total } = await APIservices.fetchImages(query, page);
+
         setData(prevData => [...prevData, ...hits]);
         setTotal(total);
-        setShowBtn(page < Math.ceil(total / 12));
+        setShowBtn(page < Math.ceil(total / 12) ? true : false);
+        setShowBtnLoader(false);
         setStatus('resolved');
       } catch (error) {
         setStatus('rejected');
       }
     };
 
-    fetchData();
-  }, [searchQuery, page]);
+    if (searchQuery !== newSearchQuery) {
+      setSearchQuery(newSearchQuery);
+      setData([]);
+      setPage(1);
+      setStatus('pending');
+
+      fetchImages(newSearchQuery, 1);
+      return;
+    }
+
+    if (prevPage !== page && data.length !== 0) {
+      setShowBtnLoader(true);
+      fetchImages(searchQuery, page);
+      return;
+    }
+  }, [page, newSearchQuery, searchQuery, prevPage, data.length]);
 
   const handleLoadMore = () => {
     setPage(prevPage => prevPage + 1);
@@ -42,9 +58,7 @@ export default function ImageGallery({ searchQuery, showLargeImage }) {
 
   if (status === 'idle') {
     return (
-      <p className={css.galleryMessage}>
-        Enter your query to find the images.
-      </p>
+      <p className={css.galleryMessage}>Enter your query to find the images.</p>
     );
   }
 
@@ -55,7 +69,7 @@ export default function ImageGallery({ searchQuery, showLargeImage }) {
   if (status === 'rejected') {
     return (
       <p className={css.galleryMessage} style={{ color: 'red' }}>
-        Oops! Something went wrong. Please, try reloading the page.
+        Oops! Something went wrong. Please, try reload the page.
       </p>
     );
   }
@@ -64,7 +78,7 @@ export default function ImageGallery({ searchQuery, showLargeImage }) {
     return (
       <section className={css.gallerySection}>
         <p className={css.galleryMessage}>
-          We found {total} images for "{searchQuery}"!
+          We found {total} images for "{newSearchQuery}"!
         </p>
         <ul className={css.gallery}>
           {data.map(el => (
@@ -84,6 +98,6 @@ export default function ImageGallery({ searchQuery, showLargeImage }) {
 }
 
 ImageGallery.propTypes = {
-  searchQuery: PropTypes.string.isRequired,
+  newSearchQuery: PropTypes.string.isRequired,
   showLargeImage: PropTypes.func.isRequired,
 };

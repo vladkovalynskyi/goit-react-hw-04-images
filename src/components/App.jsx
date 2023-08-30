@@ -19,16 +19,20 @@ function App() {
     setShowModal(prevShowModal => !prevShowModal);
   };
 
-  const handleShowLargeImage = (url, altText) => {
-    setLargeImageURL(url);
-    setAlt(altText);
+  const showLargeImage = (largeImageURL, alt) => {
+    setLargeImageURL(largeImageURL);
+    setAlt(alt);
     handleToggleModal();
   };
+
 
   return (
     <div className={css.app}>
       <Searchbar onSubmit={handleSearchSubmit} />
-      <ImageGallery searchQuery={searchQuery} showLargeImage={handleShowLargeImage} />
+      <ImageGallery
+        newSearchQuery={searchQuery}
+        showLargeImage={showLargeImage}
+      />
       <ToastContainer />
       {showModal && (
         <Modal onClose={handleToggleModal}>
